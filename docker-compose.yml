@@ -1,0 +1,15 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: agentcart-db
+    environment:
+      POSTGRES_USER: agentcart
+      POSTGRES_PASSWORD: agentcart
+      POSTGRES_DB: agentcart
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
