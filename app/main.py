@@ -1,6 +1,9 @@
+from app.routers import products
 from fastapi import FastAPI
 
 app = FastAPI(title="AgentCart")
+
+app.include_router(products.router)
 
 @app.get("/api/hello")
 def hello() -> dict:
