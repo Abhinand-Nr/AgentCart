@@ -1,7 +1,9 @@
+from app.handlers import register_handlers
 from app.routers import products
 from fastapi import FastAPI
 
 app = FastAPI(title="AgentCart")
+register_handlers(app)
 
 app.include_router(products.router)
 
