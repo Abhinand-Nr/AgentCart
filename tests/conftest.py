@@ -30,7 +30,7 @@ def db():
     yield session
     session.close()
     with engine.begin() as conn:
-        conn.execute(text("TRUNCATE cart_items, products RESTART IDENTITY CASCADE"))
+                conn.execute(text("TRUNCATE cart_items, products, users RESTART IDENTITY CASCADE"))
 
 
 @pytest.fixture

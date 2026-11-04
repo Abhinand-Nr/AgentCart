@@ -15,3 +15,7 @@ class NotFoundError(AppError):
 class BadRequestError(AppError):
     status_code = 400
     code = "bad_request"
+
+class ConflictError(AppError):
+    status_code = 409
+    code = "conflict"

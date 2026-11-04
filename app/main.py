@@ -1,5 +1,5 @@
 from app.handlers import register_handlers
-from app.routers import cart, products
+from app.routers import auth, cart, products
 from fastapi import FastAPI
 
 app = FastAPI(title="AgentCart")
@@ -7,6 +7,7 @@ register_handlers(app)
 
 app.include_router(products.router)
 app.include_router(cart.router)
+app.include_router(auth.router)
 
 @app.get("/api/hello")
 def hello() -> dict:

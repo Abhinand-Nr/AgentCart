@@ -1,7 +1,7 @@
 from decimal import Decimal
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel,EmailStr,  ConfigDict, Field
+from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
 
 
 class ProductOut(BaseModel):
@@ -41,3 +41,15 @@ class CartOut(BaseModel):
     items: list[CartLine]
     item_count: int
     total: Decimal
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=64)
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: EmailStr
+    created_at: datetime
