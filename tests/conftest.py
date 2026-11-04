@@ -7,7 +7,8 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database import Base, DATABASE_URL, get_db
 from app.main import app
-from app.models import Product
+from app.models import Product, User
+from app.security import create_access_token, hash_password
 
 # Same address as the real database, but ending in /agentcart_test
 TEST_DATABASE_URL = DATABASE_URL.rsplit("/", 1)[0] + "/agentcart_test"
@@ -57,3 +58,16 @@ def client(db):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+@pytest.fixture
+def user(db):
+    u = User(email="abhi@example.com", password_hash=hash_password("supersecret1"))
+    db.add(u)
+    db.commit()
+    return u
+
+
+@pytest.fixture
+def auth_client(client, user):
+    client.headers["Authorization"] = f"Bearer {create_access_token(user.id)}"
+    return client

@@ -8,9 +8,10 @@ from app.models import CartItem
 from app.services import products as product_service
 
 
-def get_cart(db: Session) -> dict:
+def get_cart(db: Session, user_id: int) -> dict:
     query = (
         select(CartItem)
+        .where(CartItem.user_id == user_id)
         .options(selectinload(CartItem.product))
         .order_by(CartItem.id)
     )
@@ -33,10 +34,12 @@ def get_cart(db: Session) -> dict:
     return {"items": lines, "item_count": count, "total": total}
 
 
-def add_item(db: Session, product_id: int, quantity: int) -> dict:
-    product = product_service.get_product(db, product_id)  # 404 if missing
+def add_item(db: Session, user_id: int, product_id: int, quantity: int) -> dict:
+    product = product_service.get_product(db, product_id)
 
-    item = db.scalar(select(CartItem).where(CartItem.product_id == product_id))
+    item = db.scalar(
+        select(CartItem).where(CartItem.user_id == user_id, CartItem.product_id == product_id)
+    )
     already = item.quantity if item else 0
     if already + quantity > product.stock:
         raise BadRequestError(f"Only {product.stock} of {product.name} in stock")
@@ -44,29 +47,29 @@ def add_item(db: Session, product_id: int, quantity: int) -> dict:
     if item:
         item.quantity = already + quantity
     else:
-        db.add(CartItem(product_id=product_id, quantity=quantity))
+        db.add(CartItem(user_id=user_id, product_id=product_id, quantity=quantity))
     db.commit()
-    return get_cart(db)
+    return get_cart(db, user_id)
 
 
-def _get_item(db: Session, item_id: int) -> CartItem:
+def _get_item(db: Session, user_id: int, item_id: int) -> CartItem:
     item = db.get(CartItem, item_id)
-    if item is None:
+    if item is None or item.user_id != user_id:
         raise NotFoundError(f"Cart item {item_id} not found")
     return item
 
 
-def update_quantity(db: Session, item_id: int, quantity: int) -> dict:
-    item = _get_item(db, item_id)
+def update_quantity(db: Session, user_id: int, item_id: int, quantity: int) -> dict:
+    item = _get_item(db, user_id, item_id)
     if quantity > item.product.stock:
         raise BadRequestError(f"Only {item.product.stock} of {item.product.name} in stock")
     item.quantity = quantity
     db.commit()
-    return get_cart(db)
+    return get_cart(db, user_id)
 
 
-def remove_item(db: Session, item_id: int) -> dict:
-    item = _get_item(db, item_id)
+def remove_item(db: Session, user_id: int, item_id: int) -> dict:
+    item = _get_item(db, user_id, item_id)
     db.delete(item)
     db.commit()
-    return get_cart(db)
+    return get_cart(db, user_id)

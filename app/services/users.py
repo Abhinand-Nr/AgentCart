@@ -2,9 +2,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.errors import ConflictError
+from app.errors import ConflictError, UnauthorizedError
 from app.models import User
-from app.security import hash_password
+from app.security import hash_password, verify_password
 
 
 def register(db: Session, email: str, password: str) -> User:
@@ -21,4 +21,10 @@ def register(db: Session, email: str, password: str) -> User:
         db.rollback()
         raise ConflictError("An account with this email already exists")
     db.refresh(user)
+    return user
+
+def authenticate(db: Session, email: str, password: str) -> User:
+    user = db.scalar(select(User).where(User.email == email.strip().lower()))
+    if user is None or not verify_password(password, user.password_hash):
+        raise UnauthorizedError("Wrong email or password")
     return user
