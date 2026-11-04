@@ -31,7 +31,9 @@ def db():
     yield session
     session.close()
     with engine.begin() as conn:
-                conn.execute(text("TRUNCATE cart_items, products, users RESTART IDENTITY CASCADE"))
+            conn.execute(text(
+            "TRUNCATE order_items, orders, cart_items, products, users RESTART IDENTITY CASCADE"
+        ))
 
 
 @pytest.fixture
@@ -71,3 +73,7 @@ def user(db):
 def auth_client(client, user):
     client.headers["Authorization"] = f"Bearer {create_access_token(user.id)}"
     return client
+
+@pytest.fixture
+def session_factory():
+    return TestingSession
